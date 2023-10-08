@@ -16,6 +16,8 @@ final class Movie {
     
     @Relationship(.unique, inverse: \Review.movie) var reviews:[Review] = []
     
+    @Relationship(.unique, inverse: \Actor.movies) var actors:[Actor] = []
+    
     init(title: String, year: Int) {
         self.title = title
         self.year = year
