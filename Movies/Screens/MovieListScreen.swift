@@ -9,57 +9,72 @@ import SwiftUI
 import SwiftData
 
 enum Sheets: Identifiable {
-    
     case addMovie
     case addActor
-    case ShoeFilter
+    case showFilter
     
-    var id:Int {
+    var id: Int {
         hashValue
     }
+}
+
+struct FilterSelectionConfig {
+    var movieTitle: String = ""
+    var numberOfReviews: Int?
+    var numberOfActors: Int?
+    var genre: Genre = .action
+    var filter: FilterOption = .none
 }
 
 struct MovieListScreen: View {
     
     @Environment(\.modelContext) private var context
-    //    @Query(filter: #Predicate<Movie> { $0.year > 2021} ) private var movies: [Movie]
-    @Query(sort: \Movie.title, order: .reverse) private var movies: [Movie]
+    
+    @Query(sort: \Movie.title, order: .forward) private var movies: [Movie]
     @Query(sort: \Actor.name, order: .forward) private var actors: [Actor]
     
-    @State private var actorName:String = ""
+    @State private var actorName: String = ""
     @State private var activeSheet: Sheets?
+    
+    @State private var filterSelectionConfig = FilterSelectionConfig()
     @State private var filterOption: FilterOption = .none
-
+    
     private func saveActor() {
         let actor = Actor(name: actorName)
         context.insert(actor)
     }
     
     var body: some View {
-        VStack(alignment: .leading){
+        VStack(alignment: .leading) {
             HStack(alignment: .firstTextBaseline) {
                 Text("Movies")
                     .font(.largeTitle)
                 Spacer()
+                
                 Button("Filter") {
-                    activeSheet = .ShoeFilter
+                    activeSheet = .showFilter
                 }
             }
-       
-            MovieListView(filterOption: filterOption)
+            
+            Button("Clear Filters") {
+                    filterSelectionConfig = FilterSelectionConfig()
+            }
+            
+            MovieListView(filterOption: filterSelectionConfig.filter)
             
             Text("Actors")
                 .font(.largeTitle)
             ActorListView(actors: actors)
-            
         }
         .padding()
         .toolbar(content: {
+            
             ToolbarItem(placement: .topBarLeading) {
                 Button("Add Actor") {
                     activeSheet = .addActor
                 }
             }
+            
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Add Movie") {
                     activeSheet = .addMovie
@@ -68,24 +83,25 @@ struct MovieListScreen: View {
         })
         .sheet(item: $activeSheet, content: { activeSheet in
             switch activeSheet {
-            case .addMovie:
-                NavigationStack { AddMovieScreen() }
-            case .addActor:
-                Text("Add Actor")
-                    .font(.largeTitle)
-                
-                TextField("Actor name", text: $actorName)
-                    .textFieldStyle(.roundedBorder)
-                    .presentationDetents([.fraction(0.25)])
-                    .padding()
-                
-                
-                Button("Save") {
-                    saveActor()
-                    self.activeSheet = nil
-                }
-            case .ShoeFilter:
-                FilterSelectionScreen(filterOption: $filterOption)
+                case .addMovie:
+                    NavigationStack {
+                        AddMovieScreen()
+                    }
+                case .addActor:
+                    Text("Add Actor")
+                        .font(.largeTitle)
+                    
+                    TextField("Actor name", text: $actorName)
+                        .textFieldStyle(.roundedBorder)
+                        .presentationDetents([.fraction(0.25)])
+                        .padding()
+                    
+                    Button("Save") {
+                        saveActor()
+                        self.activeSheet = nil
+                    }
+                case .showFilter:
+                    FilterSelectionScreen(filterSelectionConfig: $filterSelectionConfig)
             }
         })
     }
@@ -94,6 +110,6 @@ struct MovieListScreen: View {
 #Preview {
     NavigationStack {
         MovieListScreen()
-            .modelContainer(for: [Movie.self,Actor.self,Review.self])
+            .modelContainer(for: [Movie.self, Review.self, Actor.self], inMemory: true)
     }
 }

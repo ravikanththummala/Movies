@@ -22,10 +22,12 @@ struct MovieListView: View {
         case .none:
             _movies = Query()
             
-        case .reviewCounr(let reviewCount):
+        case .reviewsCount(let reviewCount):
             _movies = Query(filter: #Predicate<Movie> {$0.reviews.count >= reviewCount  } )
-        case .actorCount(let actorCount):
+        case .actorsCount(let actorCount):
             _movies = Query(filter: #Predicate<Movie> {$0.actors.count >= actorCount  } )
+        case .genre(let genre):
+            _movies = Query(filter: #Predicate<Movie> {$0.genreId == genre.id } )
         }
     }
     
@@ -52,6 +54,7 @@ struct MovieListView: View {
                     HStack{
                         VStack(alignment: .leading) {
                             Text(movie.title)
+                            Text(movie.genre.title)
                             Text("Number of reviews: \(movie.reviewsCount)")
                                 .font(.caption)
                             Text("Number of actors: \(movie.actorsCount)")

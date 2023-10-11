@@ -88,7 +88,7 @@ struct MovieDetailContainerScreen: View {
             }
         }
             .onAppear {
-                movie = Movie(title: "Spiderman", year: 2023)
+                movie = Movie(title: "Spiderman", year: 2023,genre: .action)
                 context.insert(movie!)
             }
     }
